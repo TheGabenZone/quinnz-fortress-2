@@ -561,6 +561,165 @@
 	"items"
 	{
 		//------------------------
+		// AUTO-GIVE ALL WEAPONS!!
+		//------------------------
+		
+		//Scout Primaries
+		
+		"45"  //Force-A-Nature
+		{
+			"moditem" "1"
+		}
+		"220" //Shortstop
+		{
+			"moditem" "1"
+		}
+		"448" //Soda Popper
+		{
+			"moditem" "1"
+		}
+		"772"  //Baby Face's Blaster
+		{
+			"moditem" "1"
+		}
+		"1103"  //Back Scatter
+		{
+			"moditem" "1"
+		}
+		
+		//Scout Secondaries
+
+		"46"  //Bonk! Atomic Punch
+		{
+			"moditem" "1"
+		}
+		"163"  //Crit-a-Cola
+		{
+			"moditem" "1"
+		}
+		"222"  //Mad Milk
+		{
+			"moditem" "1"
+		}
+		"449"  //Winger
+		{
+			"moditem" "1"
+		}
+		"812"  //Flying Guilloutine
+		{
+			"moditem" "1"
+		}
+		
+		//Scout Melees
+		
+		"44"  //Sandman
+		{
+			"moditem" "1"
+		}
+		"221"  //Holy Mackerel
+		{
+			"moditem" "1"
+		}
+		"317"  //Candy Cane
+		{
+			"moditem" "1"
+		}
+		"325"  //Boston Basher
+		{
+			"moditem" "1"
+		}
+		"349"  //Sun-on-a-Stick
+		{
+			"moditem" "1"
+		}
+		"355"  //Fan-o-War
+		{
+			"moditem" "1"
+		}
+		"450"  //Atomizer
+		{
+			"moditem" "1"
+		}
+		"648"  //Wrap Assassin
+		{
+			"moditem" "1"
+		}
+		
+		//Soldier Primaries
+		
+		"127"  //Direct Hit
+		{
+			"moditem" "1"
+		}
+		"228"  //Black Box
+		{
+			"moditem" "1"
+		}
+		"237"  //Rocket Jumper
+		{
+			"moditem" "1"
+		}
+		"414"  //Liberty Launcher
+		{
+			"moditem" "1"
+		}
+		"441"  //Cow Mangler 5000
+		{
+			"moditem" "1"
+		}
+		"513"  //Original
+		{
+			"moditem" "1"
+		}
+		"730"  //Beggar's Bazooka
+		{
+			"moditem" "1"
+		}
+		"1104"  //Airstrike
+		{
+			"moditem" "1"
+		}
+
+		//Soldier Secondaries
+		
+		"127"  //Buff Banner
+		{
+			"moditem" "1"
+		}
+		"133"  //Gunboats
+		{
+			"moditem" "1"
+		}
+		"226"  //Battallion's Backup
+		{
+			"moditem" "1"
+		}
+		"354"  //Concheror
+		{
+			"moditem" "1"
+		}
+		"415"  //Reserve Shooter
+		{
+			"moditem" "1"
+		}
+		"442"  //Righteous Bison
+		{
+			"moditem" "1"
+		}
+		"444"  //Mantreads
+		{
+			"moditem" "1"
+		}
+		"1101"  //BASE Jumper
+		{
+			"moditem" "1"
+		}
+		"1153"  //Panic Attack
+		{
+			"moditem" "1"
+		}
+		
+		//------------------------
 		// OVERRIDES
 		//------------------------
 		"792"
@@ -714,6 +873,7 @@
 			"item_logname"	"pep_pistol"
 			"item_iconname"	"pep_pistol"
 			"item_slot"	"secondary"
+			"moditem"      "1"
 			"item_quality"	"unique"
 			"baseitem" "0"
 			"min_ilevel"	"10"

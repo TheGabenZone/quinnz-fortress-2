@@ -372,6 +372,29 @@ bool CEconWearable::ShouldDraw( void )
 		return false;
 	}
 
+#ifdef TF_CLIENT_DLL
+	// Apply cosmetic filtering for TF2
+	extern bool ShouldShowCosmetic( CEconWearable* pWearable );
+	extern bool ShouldShowWarpaint( CEconWearable* pWearable );
+	extern bool ShouldShowUnusualEffect( CEconWearable* pWearable );
+	extern bool IsItemCosmetic( CEconWearable* pWearable );
+	extern bool IsItemWarpaint( CEconWearable* pWearable );
+	extern bool HasUnusualEffect( CEconWearable* pWearable );
+	
+	if ( IsItemCosmetic( this ) && !ShouldShowCosmetic( this ) )
+	{
+		return false;
+	}
+	else if ( IsItemWarpaint( this ) && !ShouldShowWarpaint( this ) )
+	{
+		return false;
+	}
+	else if ( HasUnusualEffect( this ) && !ShouldShowUnusualEffect( this ) )
+	{
+		return false;
+	}
+#endif
+
 	bool bUseViewModel = !pPlayerOwner->ShouldDrawThisPlayer();
 
 	// Don't show view models if we're drawing the real player, and don't show non view models if using view models.
@@ -444,6 +467,18 @@ bool CEconWearable::ShouldDrawParticleSystems( void )
 		Assert ( "CEconWearable has no owner?" );		// Not sure what this means - is is visible or not?
 		return false;
 	}
+
+#ifdef TF_CLIENT_DLL
+	// Apply cosmetic filtering for TF2
+	extern bool ShouldShowUnusualEffect( CEconWearable* pWearable );
+	extern bool HasUnusualEffect( CEconWearable* pWearable );
+	
+	if ( HasUnusualEffect( this ) && !ShouldShowUnusualEffect( this ) )
+	{
+		return false;
+	}
+#endif
+
 	if ( pPlayerOwner->ShouldDrawThisPlayer() )
 	{
 		return true;

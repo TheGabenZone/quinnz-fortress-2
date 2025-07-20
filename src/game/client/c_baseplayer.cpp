@@ -2892,6 +2892,17 @@ bool C_BasePlayer::GetSteamID( CSteamID *pID )
 }
 
 #if defined USES_ECON_ITEMS
+
+#ifdef TF_CLIENT_DLL
+// Forward declarations for TF-specific filtering functions
+extern bool ShouldShowCosmetic( CEconWearable* pWearable );
+extern bool ShouldShowWarpaint( CEconWearable* pWearable );
+extern bool ShouldShowUnusualEffect( CEconWearable* pWearable );
+extern bool IsItemCosmetic( CEconWearable* pWearable );
+extern bool IsItemWarpaint( CEconWearable* pWearable );
+extern bool HasUnusualEffect( CEconWearable* pWearable );
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: Update the visibility of our worn items.
 //-----------------------------------------------------------------------------
@@ -2902,9 +2913,37 @@ void C_BasePlayer::UpdateWearables( void )
 		CEconWearable* pItem = m_hMyWearables[i];
 		if ( pItem )
 		{
-			pItem->ValidateModelIndex();
-			pItem->UpdateVisibility();
-			pItem->CreateShadow();
+#ifdef TF_CLIENT_DLL
+			// Apply cosmetic filtering for TF2
+			bool bShouldShow = true;
+			
+			if ( IsItemCosmetic( pItem ) )
+			{
+				bShouldShow = ShouldShowCosmetic( pItem );
+			}
+			else if ( IsItemWarpaint( pItem ) )
+			{
+				bShouldShow = ShouldShowWarpaint( pItem );
+			}
+			else if ( HasUnusualEffect( pItem ) )
+			{
+				bShouldShow = ShouldShowUnusualEffect( pItem );
+			}
+			
+			if ( bShouldShow )
+			{
+#endif
+				pItem->ValidateModelIndex();
+				pItem->UpdateVisibility();
+				pItem->CreateShadow();
+#ifdef TF_CLIENT_DLL
+			}
+			else
+			{
+				// Hide the wearable by skipping visibility updates
+				pItem->RemoveFromLeafSystem();
+			}
+#endif
 		}
 	}
 }

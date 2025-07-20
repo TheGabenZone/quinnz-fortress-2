@@ -145,6 +145,13 @@ CEconItemView *GetEconItemViewFromProxyEntity( void *pEntity );
 C_TFPlayer *GetOwnerFromProxyEntity( void *pEntity );
 
 // --------------------------------------------------------------------------------
+// Cosmetic Filtering ConVars
+// --------------------------------------------------------------------------------
+ConVar tf_cosmetic_filter( "tf_cosmetic_filter", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Cosmetic filter setting: 0=Enable All, 1=Mod Items Only, 2=Disable All" );
+ConVar tf_warpaint_filter( "tf_warpaint_filter", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Warpaint filter setting: 0=Enable All, 1=Mod Items Only, 2=Disable All" );
+ConVar tf_unusual_filter( "tf_unusual_filter", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Unusual effect filter setting: 0=Enable All, 1=Mod Items Only, 2=Disable All" );
+
+// --------------------------------------------------------------------------------
 // Local Convar Helper Function
 // --------------------------------------------------------------------------------
 void VisionMode_ChangeCallback( IConVar *pConVar, char const *pOldString, float flOldValue )
@@ -154,6 +161,153 @@ void VisionMode_ChangeCallback( IConVar *pConVar, char const *pOldString, float 
 	{
 		pLocalPlayer->CalculateVisionUsingCurrentFlags();
 	}
+}
+
+// --------------------------------------------------------------------------------
+// Cosmetic Filtering Helper Functions
+// --------------------------------------------------------------------------------
+bool ShouldShowCosmetic( CEconWearable* pWearable )
+{
+	if ( !pWearable )
+		return false;
+		
+	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
+	if ( !pItem )
+		return false;
+
+	int filter = tf_cosmetic_filter.GetInt();
+	
+	// 0 = Enable All
+	if ( filter == 0 )
+		return true;
+		
+	// 2 = Disable All
+	if ( filter == 2 )
+		return false;
+		
+	// 1 = Mod Items Only
+	if ( filter == 1 )
+	{
+		// Check if item has "moditem" "1" tag
+		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
+		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
+	}
+	
+	return true;
+}
+
+bool ShouldShowWarpaint( CEconWearable* pWearable )
+{
+	if ( !pWearable )
+		return false;
+		
+	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
+	if ( !pItem )
+		return false;
+
+	int filter = tf_warpaint_filter.GetInt();
+	
+	// 0 = Enable All
+	if ( filter == 0 )
+		return true;
+		
+	// 2 = Disable All
+	if ( filter == 2 )
+		return false;
+		
+	// 1 = Mod Items Only
+	if ( filter == 1 )
+	{
+		// Check if item has "moditem" "1" tag
+		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
+		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
+	}
+	
+	return true;
+}
+
+bool ShouldShowUnusualEffect( CEconWearable* pWearable )
+{
+	if ( !pWearable )
+		return false;
+		
+	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
+	if ( !pItem )
+		return false;
+
+	int filter = tf_unusual_filter.GetInt();
+	
+	// 0 = Enable All
+	if ( filter == 0 )
+		return true;
+		
+	// 2 = Disable All
+	if ( filter == 2 )
+		return false;
+		
+	// 1 = Mod Items Only
+	if ( filter == 1 )
+	{
+		// Check if item has "moditem" "1" tag
+		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
+		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
+	}
+	
+	return true;
+}
+
+bool IsItemCosmetic( CEconWearable* pWearable )
+{
+	if ( !pWearable )
+		return false;
+		
+	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
+	if ( !pItem )
+		return false;
+		
+	const CTFItemDefinition *pItemDef = dynamic_cast<const CTFItemDefinition*>( pItem->GetItemDefinition() );
+	if ( !pItemDef )
+		return false;
+	
+	// Check if item is in cosmetic slots (HEAD, MISC, MISC2)
+	int nSlot = pItemDef->GetLoadoutSlot( 0 );
+	return ( nSlot == LOADOUT_POSITION_HEAD || 
+			 nSlot == LOADOUT_POSITION_MISC || 
+			 nSlot == LOADOUT_POSITION_MISC2 );
+}
+
+bool IsItemWarpaint( CEconWearable* pWearable )
+{
+	if ( !pWearable )
+		return false;
+		
+	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
+	if ( !pItem )
+		return false;
+		
+	// Check if item has paintkit attributes
+	uint32 unPaintKitDefIndex = 0;
+	return GetPaintKitDefIndex( pItem, &unPaintKitDefIndex );
+}
+
+bool HasUnusualEffect( CEconWearable* pWearable )
+{
+	if ( !pWearable )
+		return false;
+		
+	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
+	if ( !pItem )
+		return false;
+		
+	// Check for unusual particle effect attributes
+	static CSchemaAttributeDefHandle pAttrDef_AttachParticleEffect( "attach particle effect" );
+	uint32 iValue = 0;
+	if ( pItem->FindAttribute( pAttrDef_AttachParticleEffect, &iValue ) )
+		return true;
+	
+	// Check for quality particle type (community sparkle, etc.)
+	const int iQualityParticleType = pItem->GetQualityParticleType();
+	return ( iQualityParticleType > 0 );
 }
 
 #ifdef _DEBUG
