@@ -61,8 +61,6 @@ public:
 	// Return a random item quality
 	entityquality_t GetRandomQualityForItem( bool bPreventUnique = false );
 
-	void ReloadAllSchemas();
-
 	// Decrypt the item files and return the keyvalue
 	bool	DecryptItemFiles( KeyValues *pKV, const char *pName );		
 

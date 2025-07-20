@@ -319,6 +319,19 @@ bool CTFWearable::ShouldDraw()
 {
 	C_TFPlayer *pOwner = ToTFPlayer( GetOwnerEntity() );
 
+#ifdef TF_CLIENT_DLL
+	// Check cosmetic visibility settings first
+	extern bool ShouldShowCosmetic( CEconWearable* pWearable );
+	extern bool ShouldShowWarpaint( CEconWearable* pWearable );
+	extern bool ShouldShowUnusualEffect( CEconWearable* pWearable );
+	
+	// For now, treat all TF wearables as potentially cosmetic and check all three settings
+	if ( !ShouldShowCosmetic( this ) )
+	{
+		return false;
+	}
+#endif
+
 	if ( pOwner )
 	{
 		if ( pOwner->m_Shared.InCond( TF_COND_HALLOWEEN_GHOST_MODE ) )

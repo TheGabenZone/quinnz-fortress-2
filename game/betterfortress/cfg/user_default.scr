@@ -864,41 +864,38 @@ DESCRIPTION INFO_OPTIONS
 		{ CATEGORY }
 	}
 
-	"tf_cosmetic_filter"
+	"tf_hide_cosmetics"
 	{
-		"#TF_CosmeticFilter"
-		"#Tooltip_CosmeticFilter"
+		"#TF_HideCosmetics"
+		"#Tooltip_HideCosmetics"
 		{
 			LIST
-			"#TF_CosmeticFilter_EnableAll" "0"
-			"#TF_CosmeticFilter_ModItemsOnly" "1"
-			"#TF_CosmeticFilter_DisableAll" "2"
+			"#TF_Show" "0"
+			"#TF_Hide" "1"
 		}
 		{ "0" }
 	}
 
-	"tf_warpaint_filter"
+	"tf_hide_warpaints"
 	{
-		"#TF_WarpaintFilter"
-		"#Tooltip_WarpaintFilter"
+		"#TF_HideWarpaints"
+		"#Tooltip_HideWarpaints"
 		{
 			LIST
-			"#TF_WarpaintFilter_EnableAll" "0"
-			"#TF_WarpaintFilter_ModItemsOnly" "1"
-			"#TF_WarpaintFilter_DisableAll" "2"
+			"#TF_Show" "0"
+			"#TF_Hide" "1"
 		}
 		{ "0" }
 	}
 
-	"tf_unusual_filter"
+	"tf_hide_unusual_effects"
 	{
-		"#TF_UnusualFilter"
-		"#Tooltip_UnusualFilter"
+		"#TF_HideUnusualEffects"
+		"#Tooltip_HideUnusualEffects"
 		{
 			LIST
-			"#TF_UnusualFilter_EnableAll" "0"
-			"#TF_UnusualFilter_ModItemsOnly" "1"
-			"#TF_UnusualFilter_DisableAll" "2"
+			"#TF_Show" "0"
+			"#TF_Hide" "1"
 		}
 		{ "0" }
 	}

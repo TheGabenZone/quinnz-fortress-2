@@ -321,6 +321,14 @@ void CEconWearable::UpdateWearableBodyGroups( CBasePlayer* pPlayer )
 			// unless they have no model (hatless hats)
 			nVisibleState = 0;
 		}
+		
+		// Check if cosmetics are hidden globally - if so, force bodygroups to default state
+		extern bool ShouldShowCosmetic( CEconWearable* pWearable );
+		if ( !ShouldShowCosmetic( pItem ) )
+		{
+			// When cosmetics are hidden, force visible state to 0 to restore default bodygroups
+			nVisibleState = 0;
+		}
 #endif
 
 		pItem->UpdateBodygroups( pPlayer, nVisibleState );
@@ -373,23 +381,13 @@ bool CEconWearable::ShouldDraw( void )
 	}
 
 #ifdef TF_CLIENT_DLL
-	// Apply cosmetic filtering for TF2
+	// Simple cosmetic visibility check for TF2
 	extern bool ShouldShowCosmetic( CEconWearable* pWearable );
 	extern bool ShouldShowWarpaint( CEconWearable* pWearable );
 	extern bool ShouldShowUnusualEffect( CEconWearable* pWearable );
-	extern bool IsItemCosmetic( CEconWearable* pWearable );
-	extern bool IsItemWarpaint( CEconWearable* pWearable );
-	extern bool HasUnusualEffect( CEconWearable* pWearable );
 	
-	if ( IsItemCosmetic( this ) && !ShouldShowCosmetic( this ) )
-	{
-		return false;
-	}
-	else if ( IsItemWarpaint( this ) && !ShouldShowWarpaint( this ) )
-	{
-		return false;
-	}
-	else if ( HasUnusualEffect( this ) && !ShouldShowUnusualEffect( this ) )
+	// For now, treat all wearables as potentially cosmetic and check all three settings
+	if ( !ShouldShowCosmetic( this ) )
 	{
 		return false;
 	}
@@ -469,11 +467,10 @@ bool CEconWearable::ShouldDrawParticleSystems( void )
 	}
 
 #ifdef TF_CLIENT_DLL
-	// Apply cosmetic filtering for TF2
+	// Simple unusual effect visibility check for TF2
 	extern bool ShouldShowUnusualEffect( CEconWearable* pWearable );
-	extern bool HasUnusualEffect( CEconWearable* pWearable );
 	
-	if ( HasUnusualEffect( this ) && !ShouldShowUnusualEffect( this ) )
+	if ( !ShouldShowUnusualEffect( this ) )
 	{
 		return false;
 	}

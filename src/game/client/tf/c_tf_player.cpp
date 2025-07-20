@@ -144,12 +144,71 @@ static_assert( TF_TEAM_BLUE == 3, "If this assert fires, update the assert and t
 CEconItemView *GetEconItemViewFromProxyEntity( void *pEntity );
 C_TFPlayer *GetOwnerFromProxyEntity( void *pEntity );
 
+// Forward declare the callback function
+void OnCosmeticVisibilityChanged( IConVar *var, const char *pOldValue, float flOldValue );
+
 // --------------------------------------------------------------------------------
-// Cosmetic Filtering ConVars
+// Cosmetic Visibility ConVars (Simple client-side toggles)
 // --------------------------------------------------------------------------------
-ConVar tf_cosmetic_filter( "tf_cosmetic_filter", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Cosmetic filter setting: 0=Enable All, 1=Mod Items Only, 2=Disable All" );
-ConVar tf_warpaint_filter( "tf_warpaint_filter", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Warpaint filter setting: 0=Enable All, 1=Mod Items Only, 2=Disable All" );
-ConVar tf_unusual_filter( "tf_unusual_filter", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Unusual effect filter setting: 0=Enable All, 1=Mod Items Only, 2=Disable All" );
+ConVar tf_hide_cosmetics( "tf_hide_cosmetics", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Hide all cosmetic items (1 = hidden, 0 = visible)", OnCosmeticVisibilityChanged );
+ConVar tf_hide_warpaints( "tf_hide_warpaints", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Hide all weapon warpaints (1 = hidden, 0 = visible)", OnCosmeticVisibilityChanged );
+ConVar tf_hide_unusual_effects( "tf_hide_unusual_effects", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Hide all unusual particle effects (1 = hidden, 0 = visible)", OnCosmeticVisibilityChanged );
+
+// --------------------------------------------------------------------------------
+// Voice Lip Sync ConVars
+// --------------------------------------------------------------------------------
+ConVar tf_voice_lipsync( "tf_voice_lipsync", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Enable voice chat lip sync animation (1 = enabled, 0 = disabled)" );
+ConVar tf_voice_lipsync_test( "tf_voice_lipsync_test", "0", FCVAR_CLIENTDLL, "Test mouth animation (1 = force mouth open, 0 = normal)" );
+
+//-----------------------------------------------------------------------------
+// Console command to test all flex controllers
+//-----------------------------------------------------------------------------
+CON_COMMAND( tf_test_flex, "Test all flex controllers on local player" )
+{
+	C_TFPlayer *pLocalPlayer = C_TFPlayer::GetLocalTFPlayer();
+	if ( !pLocalPlayer )
+	{
+		Msg( "No local player found!\n" );
+		return;
+	}
+
+	CStudioHdr *pStudioHdr = pLocalPlayer->GetModelPtr();
+	if ( !pStudioHdr || pStudioHdr->numflexcontrollers() == 0 )
+	{
+		Msg( "Player model has no flex controllers!\n" );
+		return;
+	}
+
+	int iFlexIndex = 0;
+	if ( args.ArgC() > 1 )
+	{
+		iFlexIndex = atoi( args[1] );
+	}
+
+	float flValue = 1.0f;
+	if ( args.ArgC() > 2 )
+	{
+		flValue = atof( args[2] );
+	}
+
+	if ( iFlexIndex >= 0 && iFlexIndex < pStudioHdr->numflexcontrollers() )
+	{
+		LocalFlexController_t flexController = LocalFlexController_t(iFlexIndex);
+		const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
+		pLocalPlayer->SetFlexWeight( flexController, flValue );
+		Msg( "Set flex controller %d (%s) to %.2f\n", iFlexIndex, pszName, flValue );
+	}
+	else
+	{
+		Msg( "Invalid flex index %d. Valid range: 0-%d\n", iFlexIndex, pStudioHdr->numflexcontrollers() - 1 );
+		Msg( "Available flex controllers:\n" );
+		for ( LocalFlexController_t i = LocalFlexController_t(0); i < pStudioHdr->numflexcontrollers(); ++i )
+		{
+			const char *pszName = pStudioHdr->pFlexcontroller( i )->pszName();
+			Msg( "  [%d] %s\n", (int)i, pszName );
+		}
+	}
+}
 
 // --------------------------------------------------------------------------------
 // Local Convar Helper Function
@@ -164,151 +223,52 @@ void VisionMode_ChangeCallback( IConVar *pConVar, char const *pOldString, float 
 }
 
 // --------------------------------------------------------------------------------
-// Cosmetic Filtering Helper Functions
+// Simple Cosmetic Visibility Helper Functions
 // --------------------------------------------------------------------------------
 bool ShouldShowCosmetic( CEconWearable* pWearable )
 {
-	if ( !pWearable )
-		return false;
-		
-	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
-	if ( !pItem )
-		return false;
-
-	int filter = tf_cosmetic_filter.GetInt();
-	
-	// 0 = Enable All
-	if ( filter == 0 )
-		return true;
-		
-	// 2 = Disable All
-	if ( filter == 2 )
-		return false;
-		
-	// 1 = Mod Items Only
-	if ( filter == 1 )
-	{
-		// Check if item has "moditem" "1" tag
-		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
-		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
-	}
-	
-	return true;
+	// Simple visibility check - just return inverse of hide setting
+	return !tf_hide_cosmetics.GetBool();
 }
 
 bool ShouldShowWarpaint( CEconWearable* pWearable )
 {
-	if ( !pWearable )
-		return false;
-		
-	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
-	if ( !pItem )
-		return false;
-
-	int filter = tf_warpaint_filter.GetInt();
-	
-	// 0 = Enable All
-	if ( filter == 0 )
-		return true;
-		
-	// 2 = Disable All
-	if ( filter == 2 )
-		return false;
-		
-	// 1 = Mod Items Only
-	if ( filter == 1 )
-	{
-		// Check if item has "moditem" "1" tag
-		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
-		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
-	}
-	
-	return true;
+	// Simple visibility check - just return inverse of hide setting
+	return !tf_hide_warpaints.GetBool();
 }
 
 bool ShouldShowUnusualEffect( CEconWearable* pWearable )
 {
-	if ( !pWearable )
-		return false;
-		
-	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
-	if ( !pItem )
-		return false;
+	// Simple visibility check - just return inverse of hide setting
+	return !tf_hide_unusual_effects.GetBool();
+}
 
-	int filter = tf_unusual_filter.GetInt();
-	
-	// 0 = Enable All
-	if ( filter == 0 )
-		return true;
-		
-	// 2 = Disable All
-	if ( filter == 2 )
-		return false;
-		
-	// 1 = Mod Items Only
-	if ( filter == 1 )
+// --------------------------------------------------------------------------------
+// Cosmetic Visibility Change Callback
+// --------------------------------------------------------------------------------
+void OnCosmeticVisibilityChanged( IConVar *var, const char *pOldValue, float flOldValue )
+{
+	// Force all players to recalculate their bodygroups when cosmetic visibility changes
+	// This ensures immediate updates without requiring respawn
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		// Check if item has "moditem" "1" tag
-		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
-		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
+		C_TFPlayer *pPlayer = ToTFPlayer( UTIL_PlayerByIndex( i ) );
+		if ( pPlayer && pPlayer->IsAlive() )
+		{
+			// Mark bodygroups as dirty to force recalculation
+			pPlayer->SetBodygroupsDirty();
+			
+			// Force immediate recalc instead of waiting for next frame
+			pPlayer->RecalcBodygroupsIfDirty();
+		}
 	}
-	
-	return true;
 }
 
-bool IsItemCosmetic( CEconWearable* pWearable )
-{
-	if ( !pWearable )
-		return false;
-		
-	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
-	if ( !pItem )
-		return false;
-		
-	const CTFItemDefinition *pItemDef = dynamic_cast<const CTFItemDefinition*>( pItem->GetItemDefinition() );
-	if ( !pItemDef )
-		return false;
-	
-	// Check if item is in cosmetic slots (HEAD, MISC, MISC2)
-	int nSlot = pItemDef->GetLoadoutSlot( 0 );
-	return ( nSlot == LOADOUT_POSITION_HEAD || 
-			 nSlot == LOADOUT_POSITION_MISC || 
-			 nSlot == LOADOUT_POSITION_MISC2 );
-}
-
-bool IsItemWarpaint( CEconWearable* pWearable )
-{
-	if ( !pWearable )
-		return false;
-		
-	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
-	if ( !pItem )
-		return false;
-		
-	// Check if item has paintkit attributes
-	uint32 unPaintKitDefIndex = 0;
-	return GetPaintKitDefIndex( pItem, &unPaintKitDefIndex );
-}
-
-bool HasUnusualEffect( CEconWearable* pWearable )
-{
-	if ( !pWearable )
-		return false;
-		
-	CEconItemView *pItem = pWearable->GetAttributeContainer() ? pWearable->GetAttributeContainer()->GetItem() : NULL;
-	if ( !pItem )
-		return false;
-		
-	// Check for unusual particle effect attributes
-	static CSchemaAttributeDefHandle pAttrDef_AttachParticleEffect( "attach particle effect" );
-	uint32 iValue = 0;
-	if ( pItem->FindAttribute( pAttrDef_AttachParticleEffect, &iValue ) )
-		return true;
-	
-	// Check for quality particle type (community sparkle, etc.)
-	const int iQualityParticleType = pItem->GetQualityParticleType();
-	return ( iQualityParticleType > 0 );
-}
+// --------------------------------------------------------------------------------
+// Note: Complex item detection functions removed for simplicity.
+// The new system uses simple global visibility toggles instead of
+// per-item type detection and filtering.
+// --------------------------------------------------------------------------------
 
 #ifdef _DEBUG
 CON_COMMAND_F ( tf_test_bomb, "Test halloween bomb", 0 )
@@ -941,6 +901,22 @@ void C_TFRagdoll::CreateTFRagdoll()
 		{
 			pPlayer->RecalcBodygroupsIfDirty();
 			m_nBody = pPlayer->GetBody();
+			
+			// If cosmetics are hidden, we need to restore default bodygroups on the ragdoll
+			// This ensures ragdolls show proper default bodygroups when cosmetics are toggled off
+			if ( tf_hide_cosmetics.GetBool() )
+			{
+				// Reset all bodygroups to default state (0) - this will show default body parts
+				// that would normally be hidden by cosmetic items
+				CStudioHdr *pStudioHdr = GetModelPtr();
+				if ( pStudioHdr )
+				{
+					for ( int i = 0; i < pStudioHdr->numbodyparts(); i++ )
+					{
+						SetBodygroup( i, 0 );
+					}
+				}
+			}
 		}
 	}
 	else
@@ -5390,6 +5366,195 @@ void C_TFPlayer::ResetFlexWeights( CStudioHdr *pStudioHdr )
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: Update voice chat lip sync animation
+//-----------------------------------------------------------------------------
+void C_TFPlayer::UpdateVoiceLipSync( void )
+{
+	// Check if lip sync is enabled
+	if ( !tf_voice_lipsync.GetBool() )
+		return;
+
+	// Get studio header for flex controls
+	CStudioHdr *pStudioHdr = GetModelPtr();
+	if ( !pStudioHdr || pStudioHdr->numflexcontrollers() == 0 )
+		return;
+
+	// For the local player, only apply lip sync in third-person or when forced
+	if ( IsLocalPlayer() && !::input->CAM_IsThirdPerson() && !tf_voice_lipsync_test.GetBool() )
+		return;
+
+	// Check if this player (local or remote) is currently speaking
+	bool bIsSpeaking = false;
+	bool bTestMode = tf_voice_lipsync_test.GetBool();
+	
+	if ( bTestMode )
+	{
+		// Force speaking for testing
+		bIsSpeaking = true;
+	}
+	else if ( IsLocalPlayer() )
+	{
+		// For local player, check if we're using voice chat
+		bIsSpeaking = GetClientVoiceMgr()->IsLocalPlayerSpeaking();
+		
+		// Debug: Print voice status for local player
+		static float flLastDebugTime = 0.0f;
+		if ( gpGlobals->curtime > flLastDebugTime + 1.0f )
+		{
+			DevMsg( "Voice Lip Sync Debug: Local player speaking = %s (thirdperson = %s)\n", 
+				bIsSpeaking ? "YES" : "NO",
+				::input->CAM_IsThirdPerson() ? "YES" : "NO" );
+			flLastDebugTime = gpGlobals->curtime;
+		}
+	}
+	else
+	{
+		// For remote players, check if they're speaking (voice status system)
+		CVoiceStatus *pVoiceStatus = GetClientVoiceMgr();
+		if ( pVoiceStatus )
+		{
+			// Convert entity index to player index (entity index is 1-based, player index is 0-based)
+			int iPlayerIndex = entindex() - 1;
+			if ( iPlayerIndex >= 0 && iPlayerIndex < MAX_PLAYERS )
+			{
+				bIsSpeaking = pVoiceStatus->IsPlayerSpeaking( iPlayerIndex );
+			}
+		}
+	}
+
+	// Try multiple possible mouth flex controller names for TF2
+	LocalFlexController_t mouthOpen = LocalFlexController_t(-1);
+	
+	// List of possible mouth flex controller names to try
+	const char* mouthFlexNames[] = {
+		"AH",			// Open mouth phoneme - most obvious
+		"OH",			// Open mouth phoneme 
+		"UH",			// Open mouth phoneme
+		"AIY",			// Open mouth phoneme
+		"EEE",			// Vowel phoneme
+		"ER",			// Vowel phoneme
+		"WQU",			// Lip movement phoneme
+		"P",			// Lip closure phoneme
+		"FFF",			// Lip phoneme
+		"SH",			// Mouth shape phoneme
+		"RR",			// Tongue/mouth phoneme
+		"ST",			// Tongue phoneme
+		"LTH",			// Tongue phoneme
+		"jaw_drop",		// Try standard names too
+		"mouth_drop",
+		"mouth_open", 
+		"mouth_01",
+		"AU25_LipsPart",
+		"AU26_JawDrop",
+		"lower_lip",
+		"mouth",
+		"upper_lip", 
+		"lip_lower",
+		"lip_upper",
+		"jaw",
+		"chin",
+		NULL
+	};
+	
+	// Try to find any available mouth flex controller
+	for ( int i = 0; mouthFlexNames[i] != NULL; i++ )
+	{
+		mouthOpen = FindFlexController( mouthFlexNames[i] );
+		if ( mouthOpen != LocalFlexController_t(-1) )
+		{
+			// Debug: Print which flex controller we found
+			static bool bPrintedFlexName = false;
+			if ( !bPrintedFlexName )
+			{
+				DevMsg( "Voice Lip Sync: Found flex controller '%s' (index %d)\n", mouthFlexNames[i], (int)mouthOpen );
+				bPrintedFlexName = true;
+			}
+			break;
+		}
+	}
+	
+	// If no mouth flex found, try ANY flex controller just to test if flex system works
+	if ( mouthOpen == LocalFlexController_t(-1) && pStudioHdr->numflexcontrollers() > 0 )
+	{
+		// Just use the first available flex controller for testing
+		mouthOpen = LocalFlexController_t(0);
+		static bool bUsingFirstFlex = false;
+		if ( !bUsingFirstFlex )
+		{
+			LocalFlexController_t flexController = LocalFlexController_t(0);
+			const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
+			DevMsg( "Voice Lip Sync: Using first available flex controller for testing: '%s' (index 0)\n", pszName );
+			bUsingFirstFlex = true;
+		}
+	}
+	
+	// Debug: Print available flex controllers if we can't find a mouth one
+	static bool bPrintedAvailableFlex = false;
+	if ( !bPrintedAvailableFlex )
+	{
+		DevMsg( "Voice Lip Sync: Available flex controllers (%d total):\n", pStudioHdr->numflexcontrollers() );
+		for ( LocalFlexController_t i = LocalFlexController_t(0); i < pStudioHdr->numflexcontrollers(); ++i )
+		{
+			LocalFlexController_t flexController = LocalFlexController_t((int)i);
+			const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
+			DevMsg( "  [%d] %s\n", (int)i, pszName );
+		}
+		bPrintedAvailableFlex = true;
+	}
+	
+	if ( mouthOpen != LocalFlexController_t(-1) )
+	{
+		if ( bIsSpeaking )
+		{
+			// Create a dramatic oscillating mouth movement while speaking
+			float flTime = gpGlobals->curtime;
+			float flMouthValue = 0.8f + 0.6f * sin( flTime * 12.0f ); // Much more dramatic oscillation
+			flMouthValue = clamp( flMouthValue, 0.2f, 1.4f ); // Allow values above 1.0 for maximum effect
+			
+			SetFlexWeight( mouthOpen, flMouthValue );
+			
+			// Also try setting some other flex controllers to see if ANY flex works
+			static bool bTriedAllFlex = false;
+			if ( !bTriedAllFlex && pStudioHdr->numflexcontrollers() > 1 )
+			{
+				// Set multiple flex controllers to high values to see if any work
+				for ( LocalFlexController_t i = LocalFlexController_t(0); i < min(5, pStudioHdr->numflexcontrollers()); ++i )
+				{
+					SetFlexWeight( i, 1.0f );
+					LocalFlexController_t flexController = LocalFlexController_t((int)i);
+					const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
+					DevMsg( "Voice Lip Sync: Testing flex controller [%d] '%s' = 1.0\n", (int)i, pszName );
+				}
+				bTriedAllFlex = true;
+			}
+			
+			// Debug: Print current flex value and verify it's being set
+			float flCurrentValue = GetFlexWeight( mouthOpen );
+			static float flLastMouthDebugTime = 0.0f;
+			if ( gpGlobals->curtime > flLastMouthDebugTime + 0.5f )
+			{
+				LocalFlexController_t flexController = LocalFlexController_t((int)mouthOpen);
+				const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
+				DevMsg( "Voice Lip Sync: Setting flex '%s'[%d] to %.2f, current value: %.2f\n", 
+					pszName, (int)mouthOpen, flMouthValue, flCurrentValue );
+				flLastMouthDebugTime = gpGlobals->curtime;
+			}
+		}
+		else
+		{
+			// Gradually close mouth when not speaking
+			float flCurrentWeight = GetFlexWeight( mouthOpen );
+			if ( flCurrentWeight > 0.0f )
+			{
+				flCurrentWeight -= gpGlobals->frametime * 4.0f; // Faster fade out
+				flCurrentWeight = Max( 0.0f, flCurrentWeight );
+				SetFlexWeight( mouthOpen, flCurrentWeight );
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void C_TFPlayer::CalcInEyeCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov )
@@ -6230,6 +6395,11 @@ void C_TFPlayer::ClientThink()
 		    engine->ClientCmd("voicemenu 1 8");
 	    }
 	}
+
+	// --------------------------------------------------------------------------------
+	// Voice Lip Sync - Update mouth animation based on voice chat
+	// --------------------------------------------------------------------------------
+	UpdateVoiceLipSync();
 }
 
 void C_TFPlayer::MVM_StartIdleSound(void)
@@ -10312,6 +10482,12 @@ void C_TFPlayer::CreateBoneAttachmentsFromWearables( C_TFRagdoll *pRagdoll, bool
 	if ( bDisguised && !ShouldDrawSpyAsDisguised() )
 	{
 		// the team of disguised spy don't see any wearable
+		return;
+	}
+
+	// If cosmetics are hidden globally, don't attach any cosmetic wearables to ragdolls
+	if ( tf_hide_cosmetics.GetBool() )
+	{
 		return;
 	}
 

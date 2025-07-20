@@ -516,6 +516,7 @@ public:
 protected:
 
 	void ResetFlexWeights( CStudioHdr *pStudioHdr );
+	void UpdateVoiceLipSync( void );
 
 	virtual void CalcInEyeCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
 

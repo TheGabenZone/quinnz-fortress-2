@@ -32,136 +32,31 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include <tier0/memdbgon.h>
 
-// Forward declarations for cosmetic filtering functions (defined in c_tf_player.cpp)
+// Forward declarations for cosmetic visibility functions (defined in c_tf_player.cpp)
 extern bool ShouldShowCosmetic( CEconWearable* pWearable );
 extern bool ShouldShowWarpaint( CEconWearable* pWearable );
 extern bool ShouldShowUnusualEffect( CEconWearable* pWearable );
-extern bool IsItemCosmetic( CEconWearable* pWearable );
-extern bool IsItemWarpaint( CEconWearable* pWearable );
-extern bool HasUnusualEffect( CEconWearable* pWearable );
 
-// Helper functions for CEconItemView
-static bool IsItemCosmeticView( CEconItemView *pItem )
-{
-	if ( !pItem )
-		return false;
-		
-	const CTFItemDefinition *pItemDef = dynamic_cast<const CTFItemDefinition*>( pItem->GetItemDefinition() );
-	if ( !pItemDef )
-		return false;
-	
-	// Check if item is in cosmetic slots (HEAD, MISC, MISC2)
-	int nSlot = pItemDef->GetLoadoutSlot( 0 );
-	return ( nSlot == LOADOUT_POSITION_HEAD || 
-			 nSlot == LOADOUT_POSITION_MISC || 
-			 nSlot == LOADOUT_POSITION_MISC2 );
-}
-
-static bool IsItemWarpaintView( CEconItemView *pItem )
-{
-	if ( !pItem )
-		return false;
-		
-	// Check if item has paintkit attributes
-	uint32 unPaintKitDefIndex = 0;
-	return GetPaintKitDefIndex( pItem, &unPaintKitDefIndex );
-}
-
+// Simple visibility check for UI panels
 static bool ShouldShowCosmeticView( CEconItemView *pItem )
 {
-	if ( !pItem )
-		return false;
-
-	extern ConVar tf_cosmetic_filter;
-	int filter = tf_cosmetic_filter.GetInt();
-	
-	// 0 = Enable All
-	if ( filter == 0 )
-		return true;
-		
-	// 2 = Disable All
-	if ( filter == 2 )
-		return false;
-		
-	// 1 = Mod Items Only
-	if ( filter == 1 )
-	{
-		// Check if item has "moditem" "1" tag
-		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
-		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
-	}
-	
-	return true;
+	// For UI panels, just use the simple cosmetic visibility setting
+	extern ConVar tf_hide_cosmetics;
+	return !tf_hide_cosmetics.GetBool();
 }
 
 static bool ShouldShowWarpaintView( CEconItemView *pItem )
 {
-	if ( !pItem )
-		return false;
-
-	extern ConVar tf_warpaint_filter;
-	int filter = tf_warpaint_filter.GetInt();
-	
-	// 0 = Enable All
-	if ( filter == 0 )
-		return true;
-		
-	// 2 = Disable All
-	if ( filter == 2 )
-		return false;
-		
-	// 1 = Mod Items Only
-	if ( filter == 1 )
-	{
-		// Check if item has "moditem" "1" tag
-		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
-		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
-	}
-	
-	return true;
-}
-
-static bool HasUnusualEffectView( CEconItemView *pItem )
-{
-	if ( !pItem )
-		return false;
-		
-	// Check for unusual particle effect attributes
-	static CSchemaAttributeDefHandle pAttrDef_AttachParticleEffect( "attach particle effect" );
-	uint32 iValue = 0;
-	if ( pItem->FindAttribute( pAttrDef_AttachParticleEffect, &iValue ) )
-		return true;
-	
-	// Check for quality particle type (community sparkle, etc.)
-	const int iQualityParticleType = pItem->GetQualityParticleType();
-	return ( iQualityParticleType > 0 );
+	// For UI panels, just use the simple warpaint visibility setting
+	extern ConVar tf_hide_warpaints;
+	return !tf_hide_warpaints.GetBool();
 }
 
 static bool ShouldShowUnusualEffectView( CEconItemView *pItem )
 {
-	if ( !pItem )
-		return false;
-
-	extern ConVar tf_unusual_filter;
-	int filter = tf_unusual_filter.GetInt();
-	
-	// 0 = Enable All
-	if ( filter == 0 )
-		return true;
-		
-	// 2 = Disable All
-	if ( filter == 2 )
-		return false;
-		
-	// 1 = Mod Items Only
-	if ( filter == 1 )
-	{
-		// Check if item has "moditem" "1" tag
-		econ_tag_handle_t tagHandle = GetItemSchema()->GetHandleForTag( "moditem" );
-		return pItem->GetItemDefinition()->HasEconTag( tagHandle );
-	}
-	
-	return true;
+	// For UI panels, just use the simple unusual effect visibility setting
+	extern ConVar tf_hide_unusual_effects;
+	return !tf_hide_unusual_effects.GetBool();
 }
 
 DECLARE_BUILD_FACTORY( CTFPlayerModelPanel );
@@ -1198,16 +1093,10 @@ void CTFPlayerModelPanel::EquipItem( CEconItemView *pItem )
 //-----------------------------------------------------------------------------
 int CTFPlayerModelPanel::AddCarriedItem( CEconItemView *pItem )
 {
-	// Apply cosmetic filtering
-	if ( IsItemCosmeticView( pItem ) && !ShouldShowCosmeticView( pItem ) )
+	// Apply simple cosmetic visibility check
+	if ( !ShouldShowCosmeticView( pItem ) )
 	{
-		return -1; // Don't add cosmetic items that are filtered out
-	}
-	
-	// Apply warpaint filtering
-	if ( IsItemWarpaintView( pItem ) && !ShouldShowWarpaintView( pItem ) )
-	{
-		return -1; // Don't add warpaint items that are filtered out
+		return -1; // Don't add items that are hidden
 	}
 
 	CEconItemView *pNewItem = new CEconItemView;
@@ -1720,10 +1609,11 @@ bool CTFPlayerModelPanel::UpdateCosmeticParticles(
 	CEconItemView *pEconItem
 )
 {
-	// Apply unusual effect filtering
-	if ( HasUnusualEffectView( pEconItem ) && !ShouldShowUnusualEffectView( pEconItem ) )
+	// Apply simple unusual effect visibility check
+	extern ConVar tf_hide_unusual_effects;
+	if ( tf_hide_unusual_effects.GetBool() )
 	{
-		return false; // Don't show unusual effects that are filtered out
+		return false; // Don't show unusual effects that are hidden
 	}
 
 	if ( m_aParticleSystems[ iSystem ] && m_aParticleSystems[ iSystem ]->m_bIsUpdateToDate )
