@@ -1,6 +1,6 @@
 # Quinnz Fortress 2
 
-![new_tf2_logo](https://github.com/user-attachments/assets/7e53da2e-abd5-4d16-bbb3-7e37997372a5)
+![new_tf2_logo](new_tf2_logo.png)
 
 ## What is Quinnz Fortress 2?
 
