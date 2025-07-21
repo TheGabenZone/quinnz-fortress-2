@@ -80,6 +80,9 @@ public:
 	void		 SetClass( int iClass );
 	void		 SetTeam( int iTeam );
 
+	// Female Models Support
+	const char*  GetFemaleModelPath( int iClass ) const;
+
 	int			 GetNumRelevantSlots() const;
 	CEconItemView	*GetItemInSlot( int iSlot );
 

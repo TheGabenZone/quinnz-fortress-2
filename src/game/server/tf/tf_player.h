@@ -1570,6 +1570,10 @@ public:
 	float GetLastAutobalanceTime() { return m_flLastAutobalanceTime; }
 	bool IsMaxHealthDraining( void ) { return m_nMaxHealthDrainBucket != 0.0; }
 
+	// Female Models Toggle
+	void SetFemaleModelsPreference( bool bUseFemaleModels ) { m_bUseFemaleModels = bUseFemaleModels; }
+	bool GetFemaleModelsPreference() const { return m_bUseFemaleModels; }
+
 private:
 	bool PickupWeaponFromOther( CTFDroppedWeapon *pDroppedWeapon );
 	bool TryToPickupDroppedWeapon();
@@ -1598,6 +1602,9 @@ private:
 
 	float m_flLastRuneChargeUpdate;
 	float m_flLastDamageResistSoundTime;
+
+	// Female Models Toggle preference
+	bool m_bUseFemaleModels;
 
 	void UpdateCustomAttributes();
 	void RemoveAllCustomAttributes();

@@ -1,8 +1,3 @@
-//CREDITS TO BETAM!! PLAY HIS MOD RIGHT NOW!
-//
-// To the Viewer, please, if i forgot you and i added something from you, report it to me on Discord!
-// I Wanna credit everyone as possible, i don't wanna be a bad person :(
-//
 VERSION 1.0
 DESCRIPTION INFO_OPTIONS
 {
@@ -13,7 +8,7 @@ DESCRIPTION INFO_OPTIONS
 	}
 	"credit1_1"
 	{
-		"by Alien31, main_thing
+		"by Quinnz, TheGabenZone
 		NOTICE :If we forgot someone to credit in our mod, reach us in the discord please :("
 		{ BOOL }
 		{ "1" }
@@ -21,14 +16,7 @@ DESCRIPTION INFO_OPTIONS
 	"credit1_2"
 	{
 		"PracticeMedicine - Discord RPC rewrite, misc. Fixes
-		Vvis - Give_econ command, Mini-Dispenser cost"
-		{ BOOL }
-		{ "1" }
-	}	
-	"credit1_3"
-	{
-		"Published by MIXERRULES"
-		"https://wiki.tf2sm.info"
+		Vvis - Give_econ command"
 		{ BOOL }
 		{ "1" }
 	}	
@@ -41,13 +29,6 @@ DESCRIPTION INFO_OPTIONS
 	{
 		"BetaM - Custom Items, Credits menu, misc. fixes"
 		"https://www.youtube.com/BetaM"
-		{ BOOL }
-		{ "1" }
-	}	
-	"credit2_2"
-	{
-		"CTrigger_Hurt - MVM Versus Viewmodels"
-		"https://steamcommunity.com/profiles/76561198036209556"
 		{ BOOL }
 		{ "1" }
 	}	
@@ -70,39 +51,44 @@ DESCRIPTION INFO_OPTIONS
 		{ BOOL }
 		{ "1" }
 	}
-	"category4"
+	"category3"
 	{
-		"UPDATE: OFFSHORE"
+		"Community Assets Used"
 		{ CATEGORY }
+	}
+	"credit3_1"
+	{
+		"Azunyan Nyakano - Female Scout Model"
+		{ BOOL }
+		{ "1" }
 	}	
-	"credit4_1"
+	"credit3_2"
 	{
-		"Haau - The Hell Beneath Stickybomb launcher
-		Altranade - The Holy Merlin"
+		"ThePinkishOne - Female Soldier Model"
 		{ BOOL }
 		{ "1" }
 	}
-	"credit4_2"
+	"credit3_3"
 	{
-		"TheHypedScoot - Scout Sandkick taunt
-		Dansky - Crate and key models"
+		"Alaxe - Female Pyro Model"
 		{ BOOL }
 		{ "1" }
 	}
-	"category5"
+	"credit3_4"
 	{
-		"WORKSHOP COMMUNITY ITEMS USED"
-		{ CATEGORY }
-	}	
-	"credit5_1"
-	{
-		"Evan - Soviet Unit"
+		"HedyL - Female Demoman Model"
 		{ BOOL }
 		{ "1" }
 	}
-	"credit5_2"
+	"credit3_5"
 	{
-		"NeoDos - Mini-Dispenser, Handy Partner"
+		"Chemical Alia - Female Heavy, Engineer, Medic, Spy Model"
+		{ BOOL }
+		{ "1" }
+	}
+	"credit3_6"
+	{
+		"MaxxySFM - Female Sniper Model"
 		{ BOOL }
 		{ "1" }
 	}

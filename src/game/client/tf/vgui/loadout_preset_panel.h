@@ -44,6 +44,9 @@ private:
 	equipped_preset_t	GetSelectedPresetID() const;
 	void				UpdatePresetButtonStates();
 	void				LoadPreset( int iPresetIndex );
+	void				ToggleFemaleModels();
+	void				UpdateFemaleModelToggleState();
+	const char*			GetFemaleModelPath( int iClass ) const;
 
 	enum PresetsConsts_t
 	{
@@ -53,7 +56,9 @@ private:
 	int						m_iClass;
 	KeyValues				*m_pPresetButtonKv;
 	CExButton				*m_pPresetButtons[ MAX_PRESETS ];
+	CExButton				*m_pFemaleModelToggle;
 	bool					m_bDisplayVertical;
+	bool					m_bFemaleModelsEnabled;
 	CClassLoadoutPanel*		m_pClassLoadoutPanel;
 
 	enum PresetButtonColors_t

@@ -7,9 +7,16 @@
 #include "tf_item_inventory.h"
 #include "econ/econ_item_preset.h"
 #include "econ/econ_item_system.h"
+#include "c_tf_player.h"
+#include "tf_shareddefs.h"
+#include "vgui_controls/Button.h"
+#include "econ_controls.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include <tier0/memdbgon.h>
+
+// ConVar to store female models preference on client
+ConVar tf_female_models_enabled( "tf_female_models_enabled", "0", FCVAR_ARCHIVE | FCVAR_USERINFO, "Enable female player models" );
 
 //-----------------------------------------------------------------------------
 
@@ -30,6 +37,8 @@ CLoadoutPresetPanel::CLoadoutPresetPanel( vgui::Panel *pParent, const char *pNam
 	m_iClass = TF_CLASS_UNDEFINED;
 	m_pPresetButtonKv = NULL;
 	m_bDisplayVertical = false;
+	m_bFemaleModelsEnabled = false;
+	m_pFemaleModelToggle = NULL;
 
 	// Create all buttons
 	for ( int i = 0; i < MAX_PRESETS; ++i )
@@ -50,7 +59,22 @@ void CLoadoutPresetPanel::ApplySchemeSettings( vgui::IScheme *pScheme )
 {
 	BaseClass::ApplySchemeSettings( pScheme );
 
+	// Initialize female model toggle state from ConVar
+	m_bFemaleModelsEnabled = tf_female_models_enabled.GetBool();
+	if ( m_pFemaleModelToggle )
+	{
+		UpdateFemaleModelToggleState();
+	}
+
 	LoadControlSettings( "Resource/UI/LoadoutPresetPanel.res" );
+
+	// Find the female model toggle button from the resource file
+	m_pFemaleModelToggle = dynamic_cast<CExButton*>( FindChildByName( "FemaleModelToggle" ) );
+	if ( m_pFemaleModelToggle )
+	{
+		m_pFemaleModelToggle->AddActionSignalTarget( this );
+		UpdateFemaleModelToggleState();
+	}
 
 	m_aDefaultColors[LOADED][FG][DEFAULT] = vgui::scheme()->GetIScheme( GetScheme() )->GetColor( "Econ.Button.PresetDefaultColorFg", Color( 255, 255, 255, 255 ) );
 	m_aDefaultColors[LOADED][FG][ARMED] = vgui::scheme()->GetIScheme( GetScheme() )->GetColor( "Econ.Button.PresetArmedColorFg", Color( 255, 255, 255, 255 ) );
@@ -134,6 +158,14 @@ void CLoadoutPresetPanel::SetClass( int iClass )
 	if ( iClass != TF_CLASS_UNDEFINED )
 	{
 		UpdatePresetButtonStates();
+		
+		// Apply female model if enabled for the new class
+		if ( m_bFemaleModelsEnabled )
+		{
+			// Note: The actual model changing will be handled server-side
+			// This client-side code just maintains the UI state
+			UpdateFemaleModelToggleState();
+		}
 	}
 }
 
@@ -167,6 +199,10 @@ void CLoadoutPresetPanel::OnCommand( const char *command )
 	{
 		const int iPresetIndex = atoi( command + 11 );
 		LoadPreset( iPresetIndex );
+	}
+	else if ( !V_stricmp( command, "FemaleModelToggle" ) )
+	{
+		ToggleFemaleModels();
 	}
 	else
 	{
@@ -266,5 +302,81 @@ void CLoadoutPresetPanel::UpdatePresetButtonStates()
 
 		CFmtStr fmtCmd( "loadpreset_%i", i );
 		m_pPresetButtons[i]->SetCommand( fmtCmd.Access() );
+	}
+
+	// Update female model toggle button state
+	UpdateFemaleModelToggleState();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Toggle between male and female models
+//-----------------------------------------------------------------------------
+void CLoadoutPresetPanel::ToggleFemaleModels()
+{
+	m_bFemaleModelsEnabled = !m_bFemaleModelsEnabled;
+	
+	// Save preference to ConVar
+	tf_female_models_enabled.SetValue( m_bFemaleModelsEnabled );
+	
+	UpdateFemaleModelToggleState();
+
+	// Apply the model change to the current player
+	if ( m_pClassLoadoutPanel )
+	{
+		// Send command to server to toggle female models
+		engine->ClientCmd_Unrestricted( VarArgs( "tf_female_models %d", m_bFemaleModelsEnabled ? 1 : 0 ) );
+		
+		// Update the player model panel in the loadout
+		m_pClassLoadoutPanel->UpdateModelPanels();
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Update the visual state of the female model toggle button
+//-----------------------------------------------------------------------------
+void CLoadoutPresetPanel::UpdateFemaleModelToggleState()
+{
+	if ( !m_pFemaleModelToggle )
+		return;
+
+	if ( m_bFemaleModelsEnabled )
+	{
+		m_pFemaleModelToggle->SetText( "Fem." );
+		m_pFemaleModelToggle->SetDefaultColor( Color( 100, 255, 100, 255 ), Color( 50, 120, 50, 255 ) );
+	}
+	else
+	{
+		m_pFemaleModelToggle->SetText( "Fem." );
+		m_pFemaleModelToggle->SetDefaultColor( Color( 255, 255, 255, 255 ), Color( 100, 100, 100, 255 ) );
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Get the path to the female model for the specified class
+//-----------------------------------------------------------------------------
+const char* CLoadoutPresetPanel::GetFemaleModelPath( int iClass ) const
+{
+	switch ( iClass )
+	{
+		case TF_CLASS_SCOUT:
+			return "models/player/female/scout_new.mdl";
+		case TF_CLASS_SOLDIER:
+			return "models/player/female/soldier.mdl";
+		case TF_CLASS_PYRO:
+			return "models/player/female/pyro_new.mdl";
+		case TF_CLASS_DEMOMAN:
+			return "models/player/female/demo.mdl";
+		case TF_CLASS_HEAVYWEAPONS:
+			return "models/player/female/heavy.mdl";
+		case TF_CLASS_ENGINEER:
+			return "models/player/female/engineer.mdl";
+		case TF_CLASS_MEDIC:
+			return "models/player/female/medic.mdl";
+		case TF_CLASS_SNIPER:
+			return "models/player/female/sniper_new.mdl";
+		case TF_CLASS_SPY:
+			return "models/player/female/spy_edit.mdl";
+		default:
+			return NULL;
 	}
 }

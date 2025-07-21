@@ -304,6 +304,10 @@ extern ConVar tf_tournament_classchange_allowed;
 extern ConVar tf_tournament_classchange_ready_allowed;
 extern ConVar tf_rocketpack_impact_push_min;
 extern ConVar tf_rocketpack_impact_push_max;
+
+// Female model toggle support
+ConVar tf_allow_female_models( "tf_allow_female_models", "1", FCVAR_NOTIFY, "Allow players to use female models for their characters" );
+
 #if defined( _DEBUG ) || defined( STAGING_ONLY )
 extern ConVar mp_developer;
 extern ConVar bot_mimic;
@@ -328,6 +332,99 @@ static const char *s_pszTauntRPSParticleNames[] =
 	"rps_paper_blue_win",
 	"rps_scissors_blue_win"
 };
+
+//-----------------------------------------------------------------------------
+// Purpose: Get the female model path for a given TF2 class
+//-----------------------------------------------------------------------------
+const char* GetFemaleModelPath( int iClass )
+{
+	switch ( iClass )
+	{
+		case TF_CLASS_SCOUT:
+			return "models/player/female/scout_new.mdl";
+		case TF_CLASS_SOLDIER:
+			return "models/player/female/soldier.mdl";
+		case TF_CLASS_PYRO:
+			return "models/player/female/pyro_new.mdl";
+		case TF_CLASS_DEMOMAN:
+			return "models/player/female/demo.mdl";
+		case TF_CLASS_HEAVYWEAPONS:
+			return "models/player/female/heavy.mdl";
+		case TF_CLASS_ENGINEER:
+			return "models/player/female/engineer.mdl";
+		case TF_CLASS_MEDIC:
+			return "models/player/female/medic.mdl";
+		case TF_CLASS_SNIPER:
+			return "models/player/female/sniper_new.mdl";
+		case TF_CLASS_SPY:
+			return "models/player/female/spy_edit.mdl";
+		default:
+			return NULL;
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Console command to toggle female models for a player
+//-----------------------------------------------------------------------------
+void CC_TF_FemaleModels( const CCommand &args )
+{
+	// Get the player who issued the command
+	CBasePlayer *pPlayer = UTIL_GetCommandClient();
+	if ( !pPlayer )
+		return;
+
+	CTFPlayer *pTFPlayer = ToTFPlayer( pPlayer );
+	if ( !pTFPlayer )
+		return;
+
+	// Check if female models are allowed
+	if ( !tf_allow_female_models.GetBool() )
+	{
+		ClientPrint( pTFPlayer, HUD_PRINTTALK, "Female models are disabled on this server." );
+		return;
+	}
+
+	// Parse the argument (0 = male models, 1 = female models)
+	bool bUseFemaleModels = args.ArgC() > 1 ? atoi( args[1] ) != 0 : false;
+
+	// Save the player's preference
+	pTFPlayer->SetFemaleModelsPreference( bUseFemaleModels );
+
+	// Get the current class
+	int iClass = pTFPlayer->GetPlayerClass()->GetClassIndex();
+	if ( iClass == TF_CLASS_UNDEFINED )
+	{
+		ClientPrint( pTFPlayer, HUD_PRINTTALK, bUseFemaleModels ? 
+			"Female models preference saved. Will apply on next spawn." : 
+			"Male models preference saved. Will apply on next spawn." );
+		return;
+	}
+
+	if ( bUseFemaleModels )
+	{
+		// Set female model
+		const char *pszFemaleModel = GetFemaleModelPath( iClass );
+		if ( pszFemaleModel )
+		{
+			pTFPlayer->GetPlayerClass()->SetCustomModel( pszFemaleModel, true );
+			pTFPlayer->UpdateModel();
+			ClientPrint( pTFPlayer, HUD_PRINTTALK, "Female model enabled." );
+		}
+		else
+		{
+			ClientPrint( pTFPlayer, HUD_PRINTTALK, "Female model not available for this class." );
+		}
+	}
+	else
+	{
+		// Reset to default male model
+		pTFPlayer->GetPlayerClass()->SetCustomModel( "", false );
+		pTFPlayer->UpdateModel();
+		ClientPrint( pTFPlayer, HUD_PRINTTALK, "Male model enabled." );
+	}
+}
+
+static ConCommand tf_female_models( "tf_female_models", CC_TF_FemaleModels, "Toggle female models. Usage: tf_female_models <0|1>" );
 
 // -------------------------------------------------------------------------------- //
 // Player animation event. Sent to the client when a player fires, jumps, reloads, etc..
@@ -1223,6 +1320,9 @@ CTFPlayer::CTFPlayer()
 	m_bViewingCYOAPDA = false;
 
 	ResetMaxHealthDrain();
+
+	// Initialize female models preference to false (use male models by default)
+	m_bUseFemaleModels = false;
 
 	m_bRegenerating = false;
 	m_bRespawning = false;
@@ -4187,6 +4287,21 @@ void CTFPlayer::Spawn()
 			//MVM Versus - Keep the robot costume if user has it on
 			if ( GetTeamNumber() == TF_TEAM_PVE_DEFENDERS && !IsMVMRobot() )
 				GetPlayerClass()->SetCustomModel(NULL,USE_CLASS_ANIMATIONS);
+		}
+
+		// Apply female model preference if enabled and not using robot models
+		if ( !IsMVMRobot() && tf_allow_female_models.GetBool() && GetFemaleModelsPreference() )
+		{
+			int iClass = GetPlayerClass()->GetClassIndex();
+			if ( iClass >= TF_CLASS_SCOUT && iClass <= TF_CLASS_ENGINEER )
+			{
+				const char *pszFemaleModel = GetFemaleModelPath( iClass );
+				if ( pszFemaleModel )
+				{
+					GetPlayerClass()->SetCustomModel( pszFemaleModel, USE_CLASS_ANIMATIONS );
+					UpdateModel();
+				}
+			}
 		}
 
 		if ( tf_spawn_with_throwable.GetBool() )

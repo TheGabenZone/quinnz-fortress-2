@@ -5,7 +5,7 @@
 "items_game"
 {
 	"prefabs"
-	{	
+	{
 		"weapon_reserve_shooter"
 		{
 			"enabled"	"1"
@@ -704,6 +704,56 @@
 			"moditem" "1"
 		}
 		"811"  //Huo Long Heater
+		{
+			"moditem" "1"
+		}
+
+		//Heavy Secondaries
+
+		"42"  //Sandvich
+		{
+			"moditem" "1"
+		}
+		"159"  //Dalokoh's Bar
+		{
+			"moditem" "1"
+		}
+		"311"  //Buffalo Steak Sandvich
+		{
+			"moditem" "1"
+		}
+		"425"  //Family Business
+		{
+			"moditem" "1"
+		}
+		"1190"  //Second Banana
+		{
+			"moditem" "1"
+		}
+
+		//Heavy Melees
+
+		"43"  //Killing Gloves of Boxing
+		{
+			"moditem" "1"
+		}
+		"239"  //Gloves of Running Urgently
+		{
+			"moditem" "1"
+		}
+		"310"  //Warrior's Spirit
+		{
+			"moditem" "1"
+		}
+		"331"  //Fists of Steel
+		{
+			"moditem" "1"
+		}
+		"426"  //Eviction Notice
+		{
+			"moditem" "1"
+		}
+		"656"  //Holiday Punch
 		{
 			"moditem" "1"
 		}

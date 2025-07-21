@@ -26,6 +26,9 @@ extern ConVar tf_respawn_on_loadoutchanges;
 ConVar tf_show_preset_explanation_in_class_loadout( "tf_show_preset_explanation_in_class_loadout", "1", FCVAR_HIDDEN | FCVAR_CLIENTDLL | FCVAR_ARCHIVE );
 ConVar tf_show_taunt_explanation_in_class_loadout( "tf_show_taunt_explanation_in_class_loadout", "1", FCVAR_HIDDEN | FCVAR_CLIENTDLL | FCVAR_ARCHIVE );
 
+// External ConVar from loadout preset panel for female models
+extern ConVar tf_female_models_enabled;
+
 void ParticleSlider_UpdateRequest( int iLoadoutPosition, float value )
 {
 	CClassLoadoutPanel *pPanel = g_pClassLoadoutPanel;
@@ -873,7 +876,15 @@ void CClassLoadoutPanel::UpdateModelPanels( void )
 	if ( m_pPlayerModelPanel )
 	{
 		m_pPlayerModelPanel->ClearCarriedItems();
-		m_pPlayerModelPanel->SetToPlayerClass( m_iCurrentClassIndex );
+		
+		// Check if female models are enabled
+		const char *pszModelOverride = NULL;
+		if ( tf_female_models_enabled.GetBool() )
+		{
+			pszModelOverride = GetFemaleModelPath( m_iCurrentClassIndex );
+		}
+		
+		m_pPlayerModelPanel->SetToPlayerClass( m_iCurrentClassIndex, false, pszModelOverride );
 		m_pPlayerModelPanel->SetTeam( m_iCurrentTeamIndex );
 	}
 
@@ -1443,5 +1454,35 @@ void CClassLoadoutPanel::UpdatePageButtonColor( CExImageButton *pPageButton, boo
 		pPageButton->SetDefaultColor( m_aDefaultColors[iLoaded][FG][DEFAULT], m_aDefaultColors[iLoaded][BG][DEFAULT] );
 		pPageButton->SetArmedColor( m_aDefaultColors[iLoaded][FG][ARMED], m_aDefaultColors[iLoaded][BG][ARMED] );
 		pPageButton->SetDepressedColor( m_aDefaultColors[iLoaded][FG][DEPRESSED], m_aDefaultColors[iLoaded][BG][DEPRESSED] );
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Get the female model path for a given class
+//-----------------------------------------------------------------------------
+const char* CClassLoadoutPanel::GetFemaleModelPath( int iClass ) const
+{
+	switch ( iClass )
+	{
+		case TF_CLASS_SCOUT:
+			return "models/player/female/scout_new.mdl";
+		case TF_CLASS_SOLDIER:
+			return "models/player/female/soldier.mdl";
+		case TF_CLASS_PYRO:
+			return "models/player/female/pyro_new.mdl";
+		case TF_CLASS_DEMOMAN:
+			return "models/player/female/demo.mdl";
+		case TF_CLASS_HEAVYWEAPONS:
+			return "models/player/female/heavy.mdl";
+		case TF_CLASS_ENGINEER:
+			return "models/player/female/engineer.mdl";
+		case TF_CLASS_MEDIC:
+			return "models/player/female/medic.mdl";
+		case TF_CLASS_SNIPER:
+			return "models/player/female/sniper_new.mdl";
+		case TF_CLASS_SPY:
+			return "models/player/female/spy_edit.mdl";
+		default:
+			return NULL;
 	}
 }
