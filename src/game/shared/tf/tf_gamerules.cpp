@@ -19654,6 +19654,10 @@ void CTrainingModeLogic::InputForcePlayerSwapToWeapon( inputdata_t &inputdata )
 	{
 		pWeapon = pHumanPlayer->Weapon_GetSlot( TF_WPN_TYPE_ITEM2 );
 	}
+	else if ( FStrEq( inputdata.value.String(), "lunchbox" ) )
+	{
+		pWeapon = pHumanPlayer->Weapon_GetSlot( TF_WPN_TYPE_LUNCHBOX );
+	}
 
 	if ( pWeapon )
 	{

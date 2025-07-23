@@ -61,6 +61,7 @@ public:
 
 	virtual bool	DropAllowed( void );
 	int				GetLunchboxType( void ) const { int iMode = 0; CALL_ATTRIB_HOOK_INT( iMode, set_weapon_mode ); return iMode; };
+	loadout_positions_t	GetLoadoutSlot( void ) const;
 
 	void			DrainAmmo( bool bForceCooldown = false );
 

@@ -95,6 +95,23 @@ CTFLunchBox::CTFLunchBox()
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: Get the loadout slot this lunchbox item is equipped in
+//-----------------------------------------------------------------------------
+loadout_positions_t CTFLunchBox::GetLoadoutSlot( void ) const
+{
+	CTFPlayer *pOwner = GetTFPlayerOwner();
+	const CEconItemView *pItem = GetAttributeContainer()->GetItem();
+	if ( pOwner && pItem )
+	{
+		int iClass = pOwner->GetPlayerClass()->GetClassIndex();
+		return (loadout_positions_t)pItem->GetStaticData()->GetLoadoutSlot( iClass );
+	}
+	
+	// Default to secondary slot for backwards compatibility
+	return LOADOUT_POSITION_SECONDARY;
+}
+
+//-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
 void CTFLunchBox::UpdateOnRemove( void )
@@ -184,6 +201,9 @@ void CTFLunchBox::PrimaryAttack( void )
 #if GAME_DLL
 	pOwner->Taunt();
 	m_flNextPrimaryAttack = pOwner->GetTauntRemoveTime() + 0.1f;
+	
+	// Empty the charge meter when eating the lunchbox
+	pOwner->m_Shared.SetItemChargeMeter( GetLoadoutSlot(), 0.f );
 #else
 	m_flNextPrimaryAttack = gpGlobals->curtime + 2.0f; // this will be corrected by the game server
 #endif
@@ -291,7 +311,7 @@ void CTFLunchBox::SecondaryAttack( void )
 	pPlayer->RemoveAmmo( m_pWeaponInfo->GetWeaponData( m_iWeaponMode ).m_iAmmoPerShot, m_iPrimaryAmmoType );
 	g_pGameRules->SwitchToNextBestWeapon( pPlayer, this );
 
-	pPlayer->m_Shared.SetItemChargeMeter( LOADOUT_POSITION_SECONDARY, 0.f );
+	pPlayer->m_Shared.SetItemChargeMeter( GetLoadoutSlot(), 0.f );
 }
 
 //-----------------------------------------------------------------------------
@@ -312,7 +332,7 @@ void CTFLunchBox::DrainAmmo( bool bForceCooldown )
 	{
 		if ( pOwner->GetHealth() < pOwner->GetMaxHealth() || GetLunchboxType() == LUNCHBOX_ADDS_MINICRITS || iLunchboxType == LUNCHBOX_CHOCOLATE_BAR || iLunchboxType == LUNCHBOX_FISHCAKE || bForceCooldown )
 		{
-			pOwner->m_Shared.SetItemChargeMeter( LOADOUT_POSITION_SECONDARY, 0.f );
+			pOwner->m_Shared.SetItemChargeMeter( GetLoadoutSlot(), 0.f );
 		}
 		else	// Full health regular sandwhich, I can eat forever
 		{	

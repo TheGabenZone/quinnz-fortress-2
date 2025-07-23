@@ -1541,6 +1541,8 @@ const char *g_szLoadoutStrings[] =
 	"",				// LOADOUT_POSITION_THROWABLE3
 	"",				// LOADOUT_POSITION_THROWABLE4
 
+	"lunchbox",		// LOADOUT_POSITION_LUNCHBOX
+
 };
 COMPILE_TIME_ASSERT( ARRAYSIZE( g_szLoadoutStrings ) <= CLASS_LOADOUT_POSITION_COUNT );	// we don't support mapping directly to slots like "misc2", "taunt2-8", etc.
 
@@ -1575,6 +1577,8 @@ const char *g_szLoadoutStringsForDisplay[] =
 	"#LoadoutSlot_Taunt2",		// LOADOUT_POSITION_THROWABLE2,
 	"#LoadoutSlot_Taunt3",		// LOADOUT_POSITION_THROWABLE3,
 	"#LoadoutSlot_Taunt4",		// LOADOUT_POSITION_THROWABLE4,
+
+	"#LoadoutSlot_Lunchbox",	// LOADOUT_POSITION_LUNCHBOX,
 
 };
 COMPILE_TIME_ASSERT( ARRAYSIZE( g_szLoadoutStringsForDisplay ) == CLASS_LOADOUT_POSITION_COUNT );
@@ -1615,7 +1619,8 @@ const char *g_szWeaponTypeSubstrings[] =
 	"SECONDARY2",
 	"PRIMARY2",
 	"ITEM3",
-	"ITEM4"
+	"ITEM4",
+	"LUNCHBOX"
 };
 COMPILE_TIME_ASSERT( ARRAYSIZE( g_szWeaponTypeSubstrings ) == TF_WPN_TYPE_COUNT );
 

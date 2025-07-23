@@ -165,6 +165,10 @@ void CTFWeaponInfo::Parse( KeyValues *pKeyValuesData, const char *szWeaponName )
 	{
 		m_iWeaponType = TF_WPN_TYPE_ITEM2;
 	}
+	else if ( !Q_strcmp( pszWeaponType, "lunchbox" ) )
+	{
+		m_iWeaponType = TF_WPN_TYPE_LUNCHBOX;
+	}
 
 	// Grenade data.
 	m_bGrenade				= ( pKeyValuesData->GetInt( "Grenade", 0 ) != 0 );

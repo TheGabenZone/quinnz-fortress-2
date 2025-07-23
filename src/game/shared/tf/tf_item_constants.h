@@ -32,6 +32,8 @@ enum
 	TF_WPN_TYPE_ITEM3,
 	TF_WPN_TYPE_ITEM4,
 
+	// Lunchbox type for Heavy
+	TF_WPN_TYPE_LUNCHBOX,
 
 	//
 	// ADD NEW ITEMS HERE TO AVOID BREAKING DEMOS
@@ -82,11 +84,14 @@ enum loadout_positions_t
 	LOADOUT_POSITION_THROWABLE3,
 	LOADOUT_POSITION_THROWABLE4,
 
+	// Lunchbox slot for Heavy
+	LOADOUT_POSITION_LUNCHBOX,
+
 	CLASS_LOADOUT_POSITION_COUNT,
 };
 
 const loadout_positions_t FIRST_LOADOUT_SLOT_WITH_CHARGE_METER( LOADOUT_POSITION_PRIMARY );
-const loadout_positions_t LAST_LOADOUT_SLOT_WITH_CHARGE_METER( LOADOUT_POSITION_MISC2 );
+const loadout_positions_t LAST_LOADOUT_SLOT_WITH_CHARGE_METER( LOADOUT_POSITION_LUNCHBOX );
 
 const char *GetLoadoutPositionName( loadout_positions_t iLoadout );
 loadout_positions_t GetLoadoutPositionByName( const char *pszLoadoutPositionName );
@@ -161,12 +166,18 @@ inline bool IsThrowableWeaponSlot( int iSlot )
 		|| iSlot == LOADOUT_POSITION_THROWABLE4;
 }
 
+inline bool IsLunchboxSlot( int iSlot )
+{
+	return iSlot == LOADOUT_POSITION_LUNCHBOX;
+}
+
 inline bool IsValidPickupWeaponSlot( int iSlot )
 {
 	return iSlot == LOADOUT_POSITION_PRIMARY
 		|| iSlot == LOADOUT_POSITION_SECONDARY
 		|| iSlot == LOADOUT_POSITION_MELEE
-		|| IsThrowableWeaponSlot( iSlot );
+		|| IsThrowableWeaponSlot( iSlot )
+		|| IsLunchboxSlot( iSlot );
 }
 
 

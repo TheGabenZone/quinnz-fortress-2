@@ -12,6 +12,7 @@
 #include "engine/IEngineSound.h"
 #include "entity_healthkit.h"
 #include "tf_weapon_lunchbox.h"
+#include "tf_weaponbase.h"
 #include "tf_gamestats.h"
 
 
@@ -281,6 +282,27 @@ bool CHealthAmmoKit::MyTouch( CBasePlayer *pPlayer )
 					if ( pTFPlayer->GiveAmmo( ceil( iMaxGrenades1 * flPackRatio ), TF_AMMO_GRENADES1, true, kAmmoSource_Pickup ) )
 					{
 						bAmmoSuccess = true;
+					}
+				}
+
+				// If we gave ammo to a lunchbox weapon, restore its charge meter
+				if ( bAmmoSuccess )
+				{
+					for ( int iWeaponSlot = 0; iWeaponSlot < MAX_WEAPONS; iWeaponSlot++ )
+					{
+						CBaseCombatWeapon *pWeapon = pTFPlayer->GetWeapon( iWeaponSlot );
+						if ( pWeapon )
+						{
+							CTFWeaponBase *pTFWeapon = dynamic_cast<CTFWeaponBase*>( pWeapon );
+							if ( pTFWeapon && pTFWeapon->GetWeaponID() == TF_WEAPON_LUNCHBOX )
+							{
+								CTFLunchBox *pLunchBox = static_cast<CTFLunchBox*>( pTFWeapon );
+								if ( pLunchBox && pTFPlayer->GetAmmoCount( pLunchBox->GetPrimaryAmmoType() ) > 0 )
+								{
+									pTFPlayer->m_Shared.SetItemChargeMeter( pLunchBox->GetLoadoutSlot(), 100.0f );
+								}
+							}
+						}
 					}
 				}
 			}

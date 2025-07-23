@@ -5425,21 +5425,40 @@ void C_TFPlayer::UpdateVoiceLipSync( void )
 	// Try multiple possible mouth flex controller names for TF2
 	LocalFlexController_t mouthOpen = LocalFlexController_t(-1);
 	
+	// Get player class for debugging
+	int iPlayerClass = 0;
+	C_TFPlayer *pTFPlayer = dynamic_cast<C_TFPlayer*>(this);
+	if ( pTFPlayer && pTFPlayer->GetPlayerClass() )
+	{
+		iPlayerClass = pTFPlayer->GetPlayerClass()->GetClassIndex();
+	}
+	
 	// List of possible mouth flex controller names to try
+	// Ordered by priority - Engineer-specific phonemes first
 	const char* mouthFlexNames[] = {
-		"AH",			// Open mouth phoneme - most obvious
-		"OH",			// Open mouth phoneme 
-		"UH",			// Open mouth phoneme
-		"AIY",			// Open mouth phoneme
-		"EEE",			// Vowel phoneme
-		"ER",			// Vowel phoneme
-		"WQU",			// Lip movement phoneme
+		"AH",			// Engineer: Open mouth phoneme - frame 15
+		"OH",			// Engineer: Open mouth phoneme - frame 10
+		"UH",			// Engineer: Open mouth phoneme - frame 13
+		"AW",			// Engineer: Open mouth phoneme - frame 14
+		"EE",			// Engineer: Vowel phoneme - frame 21
+		"ER",			// Engineer: Vowel phoneme - frame 22
+		"OO",			// Engineer: Lip rounding - frame 9
+		"WQ",			// Engineer: Lip movement - frame 11
+		"AE",			// Engineer: Vowel phoneme - frame 17
+		"IH",			// Engineer: Vowel phoneme - frame 19
+		"AH2",			// Engineer: Alternative AH - frame 16
+		"AE2",			// Engineer: Alternative AE - frame 18
+		"AIY",			// Generic open mouth phoneme
+		"EEE",			// Generic vowel phoneme
+		"WQU",			// Generic lip movement phoneme
 		"P",			// Lip closure phoneme
-		"FFF",			// Lip phoneme
-		"SH",			// Mouth shape phoneme
-		"RR",			// Tongue/mouth phoneme
-		"ST",			// Tongue phoneme
-		"LTH",			// Tongue phoneme
+		"PP",			// Engineer: Lip closure - frame 3
+		"FFF",			// Generic lip phoneme
+		"FV",			// Engineer: Lip phoneme - frame 12
+		"SH",			// Generic mouth shape phoneme
+		"RR",			// Generic tongue/mouth phoneme
+		"ST",			// Generic tongue phoneme
+		"LTH",			// Generic tongue phoneme
 		"jaw_drop",		// Try standard names too
 		"mouth_drop",
 		"mouth_open", 
@@ -5466,7 +5485,8 @@ void C_TFPlayer::UpdateVoiceLipSync( void )
 			static bool bPrintedFlexName = false;
 			if ( !bPrintedFlexName )
 			{
-				DevMsg( "Voice Lip Sync: Found flex controller '%s' (index %d)\n", mouthFlexNames[i], (int)mouthOpen );
+				DevMsg( "Voice Lip Sync: Found flex controller '%s' (index %d) for class %d\n", 
+					mouthFlexNames[i], (int)mouthOpen, iPlayerClass );
 				bPrintedFlexName = true;
 			}
 			break;
@@ -5483,23 +5503,24 @@ void C_TFPlayer::UpdateVoiceLipSync( void )
 		{
 			LocalFlexController_t flexController = LocalFlexController_t(0);
 			const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
-			DevMsg( "Voice Lip Sync: Using first available flex controller for testing: '%s' (index 0)\n", pszName );
+			DevMsg( "Voice Lip Sync: Using first available flex controller for testing: '%s' (index 0) for class %d\n", 
+				pszName, iPlayerClass );
 			bUsingFirstFlex = true;
 		}
 	}
 	
-	// Debug: Print available flex controllers if we can't find a mouth one
-	static bool bPrintedAvailableFlex = false;
-	if ( !bPrintedAvailableFlex )
+	// Debug: Print available flex controllers specifically for Engineer
+	static bool bPrintedEngineerFlex = false;
+	if ( !bPrintedEngineerFlex && iPlayerClass == TF_CLASS_ENGINEER )
 	{
-		DevMsg( "Voice Lip Sync: Available flex controllers (%d total):\n", pStudioHdr->numflexcontrollers() );
+		DevMsg( "Voice Lip Sync: ENGINEER flex controllers (%d total):\n", pStudioHdr->numflexcontrollers() );
 		for ( LocalFlexController_t i = LocalFlexController_t(0); i < pStudioHdr->numflexcontrollers(); ++i )
 		{
 			LocalFlexController_t flexController = LocalFlexController_t((int)i);
 			const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
 			DevMsg( "  [%d] %s\n", (int)i, pszName );
 		}
-		bPrintedAvailableFlex = true;
+		bPrintedEngineerFlex = true;
 	}
 	
 	if ( mouthOpen != LocalFlexController_t(-1) )
@@ -5512,6 +5533,21 @@ void C_TFPlayer::UpdateVoiceLipSync( void )
 			flMouthValue = clamp( flMouthValue, 0.2f, 1.4f ); // Allow values above 1.0 for maximum effect
 			
 			SetFlexWeight( mouthOpen, flMouthValue );
+			
+			// Engineer-specific debugging when speaking
+			if ( iPlayerClass == TF_CLASS_ENGINEER )
+			{
+				static float flLastEngineerDebugTime = 0.0f;
+				if ( gpGlobals->curtime > flLastEngineerDebugTime + 1.0f )
+				{
+					LocalFlexController_t flexController = LocalFlexController_t((int)mouthOpen);
+					const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
+					float flCurrentValue = GetFlexWeight( mouthOpen );
+					DevMsg( "ENGINEER Voice Lip Sync: Speaking! Flex '%s'[%d] set to %.2f, actual value: %.2f\n", 
+						pszName, (int)mouthOpen, flMouthValue, flCurrentValue );
+					flLastEngineerDebugTime = gpGlobals->curtime;
+				}
+			}
 			
 			// Also try setting some other flex controllers to see if ANY flex works
 			static bool bTriedAllFlex = false;
@@ -5535,8 +5571,8 @@ void C_TFPlayer::UpdateVoiceLipSync( void )
 			{
 				LocalFlexController_t flexController = LocalFlexController_t((int)mouthOpen);
 				const char *pszName = pStudioHdr->pFlexcontroller( flexController )->pszName();
-				DevMsg( "Voice Lip Sync: Setting flex '%s'[%d] to %.2f, current value: %.2f\n", 
-					pszName, (int)mouthOpen, flMouthValue, flCurrentValue );
+				DevMsg( "Voice Lip Sync: Setting flex '%s'[%d] to %.2f, current value: %.2f (class %d)\n", 
+					pszName, (int)mouthOpen, flMouthValue, flCurrentValue, iPlayerClass );
 				flLastMouthDebugTime = gpGlobals->curtime;
 			}
 		}
@@ -5549,7 +5585,28 @@ void C_TFPlayer::UpdateVoiceLipSync( void )
 				flCurrentWeight -= gpGlobals->frametime * 4.0f; // Faster fade out
 				flCurrentWeight = Max( 0.0f, flCurrentWeight );
 				SetFlexWeight( mouthOpen, flCurrentWeight );
+				
+				// Engineer-specific debugging when stopping speech
+				if ( iPlayerClass == TF_CLASS_ENGINEER && flCurrentWeight <= 0.0f )
+				{
+					static float flLastEngineerStopTime = 0.0f;
+					if ( gpGlobals->curtime > flLastEngineerStopTime + 2.0f )
+					{
+						DevMsg( "ENGINEER Voice Lip Sync: Stopped speaking, mouth closed.\n" );
+						flLastEngineerStopTime = gpGlobals->curtime;
+					}
+				}
 			}
+		}
+	}
+	else if ( iPlayerClass == TF_CLASS_ENGINEER )
+	{
+		// Engineer-specific error when no flex controller found
+		static bool bEngineerNoFlexWarning = false;
+		if ( !bEngineerNoFlexWarning )
+		{
+			DevMsg( "ENGINEER Voice Lip Sync ERROR: No suitable flex controller found!\n" );
+			bEngineerNoFlexWarning = true;
 		}
 	}
 }

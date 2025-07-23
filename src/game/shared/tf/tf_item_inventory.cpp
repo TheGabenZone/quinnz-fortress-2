@@ -257,6 +257,51 @@ void CTFInventoryManager::GenerateBaseItems( void )
 	{
 		AddModItem( mapItemsMod[it]->GetDefinitionIndex() );
 	}
+	
+	// Manually add missing stock weapon base items that aren't in the BaseItemDefinitionMap
+	// These are the core TF2 weapons that should be available as stock items
+	int missingBaseItems[] = {
+		0,  // TF_WEAPON_BAT
+		1,  // TF_WEAPON_BOTTLE  
+		2,  // TF_WEAPON_FIREAXE
+		3,  // TF_WEAPON_CLUB
+		4,  // TF_WEAPON_KNIFE
+		5,  // TF_WEAPON_FISTS
+		6,  // TF_WEAPON_SHOVEL
+		7,  // TF_WEAPON_WRENCH
+		8,  // TF_WEAPON_BONESAW
+		9,  // TF_WEAPON_SHOTGUN_PRIMARY (Engineer)
+		10, // TF_WEAPON_SHOTGUN_SOLDIER
+		11, // TF_WEAPON_SHOTGUN_HWG (Heavy)
+		12, // TF_WEAPON_SHOTGUN_PYRO
+		13, // TF_WEAPON_SCATTERGUN
+		14, // TF_WEAPON_SNIPERRIFLE
+		15, // TF_WEAPON_MINIGUN
+		16, // TF_WEAPON_SMG
+		17, // TF_WEAPON_SYRINGEGUN_MEDIC
+		18, // TF_WEAPON_ROCKETLAUNCHER
+		19, // TF_WEAPON_GRENADELAUNCHER
+		20, // TF_WEAPON_PIPEBOMBLAUNCHER
+		21, // TF_WEAPON_FLAMETHROWER
+		22, // TF_WEAPON_PISTOL
+		23, // TF_WEAPON_PISTOL_SCOUT
+		24, // TF_WEAPON_REVOLVER
+		25, // TF_WEAPON_MEDIGUN
+		29, // TF_WEAPON_INVIS
+		30  // TF_WEAPON_FLAMETHROWER_ROCKET
+	};
+	
+	for ( int i = 0; i < ARRAYSIZE(missingBaseItems); i++ )
+	{
+		int defIndex = missingBaseItems[i];
+		CEconItemDefinition *pItemDef = GetItemSchema()->GetItemDefinition( defIndex );
+		if ( pItemDef )
+		{
+			CEconItemView *pItem = new CEconItemView;
+			pItem->Init( defIndex, AE_USE_SCRIPT_VALUE, AE_USE_SCRIPT_VALUE, false );
+			m_pBaseLoadoutItems.AddToTail( pItem );
+		}
+	}
 }
 
 CEconItemView* CTFInventoryManager::AddModItem( int id )
@@ -700,8 +745,15 @@ bool CTFInventoryManager::SlotContainsBaseItems( EEquipType_t eType, int iSlot )
 		if ( TFGameRules() && TFGameRules()->IsUsingGrapplingHook() )
 			return true;
 	}
-	// Normal game
-	return iSlot < LOADOUT_POSITION_HEAD;
+	// Normal game - weapon slots have base items
+	if ( iSlot < LOADOUT_POSITION_HEAD )
+		return true;
+	
+	// Lunchbox slot also has base items
+	if ( iSlot == LOADOUT_POSITION_LUNCHBOX )
+		return true;
+		
+	return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -756,7 +808,7 @@ CEconItemView *CTFInventoryManager::GetBaseItemForClass( int iClass, int iSlot )
 		}
 	}
 
-	if ( iSlot >= LOADOUT_POSITION_HEAD )
+	if ( iSlot >= LOADOUT_POSITION_HEAD && iSlot != LOADOUT_POSITION_LUNCHBOX )
 		return m_pDefaultItem;
 
 	// Traverse List

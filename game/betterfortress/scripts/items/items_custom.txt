@@ -220,6 +220,86 @@
 			"mouse_pressed_sound"	"ui/item_heavy_gun_pickup.wav"
 			"drop_sound"		"ui/item_heavy_gun_drop.wav"
 		}
+		"weapon_lunchbox"
+		{
+			"enabled"	"1"
+			"item_class"	"tf_weapon_lunchbox"
+			"show_in_armory"	"1"
+			"item_type_name"	"#TF_Weapon_LunchBox"
+			"item_slot"	"lunchbox"
+			"anim_slot"	"ITEM1"
+			"image_inventory_size_w"		"128"
+			"image_inventory_size_h"		"82"
+			"item_quality"	"unique"
+			"min_ilevel"	"1"
+			"max_ilevel"	"1"
+			"attach_to_hands"	"1"
+
+			"visuals"
+			{
+				"animation_replacement"
+				{
+					"ACT_SECONDARY_VM_INSPECT_START"	"ACT_ITEM1_VM_INSPECT_START"
+					"ACT_SECONDARY_VM_INSPECT_IDLE"		"ACT_ITEM1_VM_INSPECT_IDLE"
+					"ACT_SECONDARY_VM_INSPECT_END"		"ACT_ITEM1_VM_INSPECT_END"
+				}
+			}
+
+			"mouse_pressed_sound"	"ui/item_sandwich_drop.wav"
+			"drop_sound"		"ui/item_sandwich_pickup.wav"
+		}
+		"weapon_sandvich"
+		{
+			"prefab"	"weapon_lunchbox"
+			"craft_class"	"weapon"
+			"craft_material_type"	"weapon"
+			"capabilities"
+			{
+				"nameable"		"1"
+			}
+			"tags"
+			{
+				"can_heal_allies"		"1"
+				"can_extinguish"		"1"
+			}
+			"base_item_name"	"TF_WEAPON_SANDVICH"
+			"item_name"	"#TF_Unique_Achievement_LunchBox"
+			"item_description"	"#TF_Sandvich_desc"
+			"inspect_panel_dist" "31"
+			"image_inventory"	"backpack/weapons/c_models/c_sandwich/c_sandwich"
+			"model_player"	"models/weapons/c_models/c_sandwich/c_sandwich.mdl"			
+			"propername"	"1"
+			"used_by_classes"
+			{
+				"heavy"	"lunchbox"
+			}
+			"static_attrs"
+			{
+				"min_viewmodel_offset"					"10 0 -11"
+				"item_meter_charge_type"						"1"
+				"item_meter_charge_rate"			"30"
+				"meter_label"							"#TF_Sandwich"
+			}
+			"attributes"
+			{
+				"kill eater score type"
+				{
+					"attribute_class"	"kill_eater_score_type"
+					"value" 	"50" 
+				}
+				"special taunt"
+				{
+					"attribute_class"	"special_taunt"
+					"value" "1"
+				}
+				"allowed in medieval mode"
+				{
+					"attribute_class"	"allowed_in_medieval_mode"
+					"value"	"1"
+				}
+			}
+			"xifier_class_remap"	"sandvich"
+		}
 	}
 	"attributes"
 	{
@@ -710,23 +790,7 @@
 
 		//Heavy Secondaries
 
-		"42"  //Sandvich
-		{
-			"moditem" "1"
-		}
-		"159"  //Dalokoh's Bar
-		{
-			"moditem" "1"
-		}
-		"311"  //Buffalo Steak Sandvich
-		{
-			"moditem" "1"
-		}
-		"425"  //Family Business
-		{
-			"moditem" "1"
-		}
-		"1190"  //Second Banana
+		"425" //Family Business
 		{
 			"moditem" "1"
 		}
@@ -754,6 +818,28 @@
 			"moditem" "1"
 		}
 		"656"  //Holiday Punch
+		{
+			"moditem" "1"
+		}
+
+		//Heavy Lunchboxes - NEW 4TH SLOT!
+
+		"42" //Sandvich
+		{
+			"name"	"TF_WEAPON_SANDVICH"
+			"prefab"	"weapon_sandvich"
+			"baseitem" "1"
+			"item_quality" "normal"
+		}
+		"159" //Dalokoh's Bar
+		{
+			"moditem" "1"
+		}
+		"311" //Buffalo Steak Sandvich
+		{
+			"moditem" "1"
+		}
+		"1190" //Second Banana
 		{
 			"moditem" "1"
 		}
@@ -946,52 +1032,6 @@
 		//------------------------
 		// NEW QF2 ITEMS
 		//------------------------
-
-		"34000" //VISIBILITY TEST ITEMS
-		{
-			"name"			"QF2 Test Unusual Hat"
-			"prefab"		"hat"
-			"propername"		"1"
-			"valid_for_shuffle"		"1"
-			"moditem" "1"
-			"item_name"		"#QF2_TestUnusualHat"
-			"item_description"	"#QF2_TestUnusualHat_Desc"
-			"item_type_name"	"#TF_Wearable_Hat"
-			"equip_region"		"hat"
-			"image_inventory"	"backpack/player/items/all_class/all_bug_hat_demo"
-			"min_ilevel"		"3"
-			"max_ilevel"		"3"
-			"capabilities"
-			{
-				"can_craft_count"		"1"
-			}
-			"model_player_per_class"
-			{
-				"basename"	"models/player/items/all_class/all_bug_hat_%s.mdl"
-			}
-			"used_by_classes"
-			{
-				"scout"		"1"
-				"sniper"	"1"
-				"soldier"	"1"
-				"demoman"	"1"
-				"medic"		"1"
-				"heavy"		"1"
-				"pyro"		"1"
-				"spy"		"1"
-				"engineer"	"1"
-			}
-			"attributes"
-			{
-				"attach particle effect"
-				{
-					"attribute_class"	"attach_particle_effect"
-					"value"				"33"
-				}
-			}
-			"mouse_pressed_sound"	"ui/item_hat_pickup.wav"
-			"drop_sound"			"ui/item_hat_drop.wav"
-		}
 	}
 	"client_loot_lists"
 	{
