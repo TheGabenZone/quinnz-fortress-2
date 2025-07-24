@@ -19,6 +19,10 @@
 
 class ISaveRestoreBlockHandler;
 
+// Script strings for embedded Squirrel scripts
+extern const char g_Script_vscript_server[];
+extern const char g_Script_spawn_helper[];
+
 bool VScriptServerReplaceClosures( const char *pszScriptName, HSCRIPT hScope, bool bWarnMissing = false );
 ISaveRestoreBlockHandler *GetVScriptSaveRestoreBlockHandler();
 
